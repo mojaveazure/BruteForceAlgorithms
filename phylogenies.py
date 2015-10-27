@@ -8,3 +8,4 @@ C = 'GTCCCATTT'
 D = 'AATCCGATC'
 E = 'TCTCGATAG'
 
+

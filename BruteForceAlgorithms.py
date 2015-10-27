@@ -13,7 +13,6 @@ import time
 import itertools
 import re
 import sys
-import os
 try: #  Not all versions of Python have argparse, though all versions of Python 3 do
     import argparse
 except ImportError:
