@@ -30,3 +30,16 @@ while not (ParameterPart == null)
     ParameterPart <- next(Parameters)
 output(solutionSpace)
 ```
+
+### Scoring Pseudocode
+```
+allCandidates <- generate(Parameters)
+scoringBound <- N
+solutionSpace <- empty()
+leaderboard <- empty()
+for (candidate in allCandidates)
+    if valid(candiate, Problem)
+        if (score(candidate) > scoringBound)
+            leaderboard <- expand(candidate, score(candidate))
+leaderboard <- sort(leaderboard by score(candidate))
+```

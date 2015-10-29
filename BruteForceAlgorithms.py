@@ -13,10 +13,11 @@ import time
 import itertools
 import re
 import sys
-try: #  Not all versions of Python have argparse, though all versions of Python 3 do
-    import argparse
-except ImportError:
-    sys.exit("Please use Python 3 for this script")
+
+#   Import functions from other modules defined in this package
+import run
+from args import set_args
+
 
 #   Make sure we're on Python 3
 if not sys.version_info[0] == 3:
@@ -27,7 +28,6 @@ if not sys.version_info[0] == 3:
 #   Dictionary for translating between RNA codons and amino acids
 translation = {'GUU': 'V', 'CCG': 'P', 'GCU': 'A', 'CUA': 'L', 'UUA': 'L', 'AUA': 'I', 'ACG': 'T', 'UCG': 'S', 'UUU': 'F', 'GCA': 'A', 'CAG': 'Q', 'GUG': 'V', 'ACU': 'T', 'GGU': 'G', 'GCG': 'A', 'CUU': 'L', 'AAG': 'K', 'UCC': 'S', 'GGA': 'G', 'GGC': 'G', 'CGC': 'R', 'AUC': 'I', 'UUC': 'F', 'ACA': 'T', 'AUG': 'M', 'GGG': 'G', 'CUC': 'L', 'UGU': 'C', 'UCU': 'S', 'AAU': 'N', 'UUG': 'L', 'GAC': 'D', 'GUC': 'V', 'CAC': 'H', 'CAU': 'H', 'GAG': 'E', 'UAU': 'Y', 'CAA': 'Q', 'AGU': 'S', 'UGG': 'W', 'AUU': 'I', 'UAC': 'Y', 'CCA': 'P', 'AGA': 'R', 'CCU': 'P', 'CGU': 'R', 'CGA': 'R', 'AAC': 'N', 'CCC': 'P', 'CGG': 'R', 'CUG': 'L', 'UCA': 'S', 'GCC': 'A', 'GAA': 'E', 'ACC': 'T', 'GAU': 'D', 'AGC': 'S', 'AGG': 'R', 'UGC': 'C', 'AAA': 'K', 'GUA': 'V'}
 
-RNAToCodingDNA = str.maketrans('AUGC', 'ATGC') # Translate table for fining coding DNA sequence from an RNA sequence
 
 def check_peptide_sequence(peptide, translation):
     '''Make sure we are given a valid peptide sequence'''
@@ -43,6 +43,7 @@ def retrotranslate(translation, peptide_length):
 
 def RNA_to_peptide(translation, RNA):
     '''Convert RNA sequence into a peptide sequence'''
+    RNAToCodingDNA = str.maketrans('AUGC', 'ATGC') # Translate table for fining coding DNA sequence from an RNA sequence
     peptide = '' # An empty set to hold our complete peptide sequence
     byCodon = re.compile(r'...', re.M) # A regex object to split our RNA sequence into codons
     RNA_codons = byCodon.findall(RNA) # Split our RNA sequence into codons
@@ -67,7 +68,7 @@ def brute_retrotranslate(translation, peptide):
     for candidate in retrotranslate(translation, peptide_length): # For each candidate RNA sequence
         generated_peptides = RNA_to_peptide(translation, candidate) # Convert the sequence to peptide
         if generated_peptides == peptide: # If the generated peptide sequence matches
-            gene_candidate = RNA_to_DNA(candidate, RNAToCodingDNA) # Reverse transcribe to the coding DNA sequence
+            gene_candidate = RNA_to_DNA(candidate) # Reverse transcribe to the coding DNA sequence
             solutions.append(gene_candidate) # It goes in our solutions list
     print("Found", len(solutions), "possible gene sequences for your peptide")
     return(solutions) # Return our solutions
@@ -87,7 +88,7 @@ def b_and_b_retrotranslate(translation, peptide):
         for codon in [''.join(candidate) for candidate in itertools.product(translation.keys(), repeat=1)]: # For each possible codon sequence
             amino_acid = RNA_to_peptide(translation, codon) # Translate the codon to an amino acid
             if amino_acid == peptide[i]: # If we have a match
-                gene_codon = RNA_to_DNA(codon, RNAToCodingDNA) # Reverse translate to the coding DNA sequence
+                gene_codon = RNA_to_DNA(codon) # Reverse translate to the coding DNA sequence
                 holding.append(gene_codon) # Add this to our holding list
         print("Generated", len(holding), "candiate codons given this current amino acid")
         if solutions: # If we already have something in our solutions list
@@ -98,19 +99,12 @@ def b_and_b_retrotranslate(translation, peptide):
     return(solutions) # Return our solutions
 
 
-def me(peptide):
-    t0 = time.clock()
-    print(brute_retrotranslate(translation, peptide))
-    t1 = time.clock()
-    print(b_and_b_retrotranslate(translation, peptide))
-    t2 = time.clock()
-    print('Brute force:', t1-t0)
-    print('B & B:', t2-t1)
 
 
 
-def me2(peptide):
-    t0 = time.clock()
-    print(b_and_b_retrotranslate(translation, peptide))
-    print(time.clock()-t0)
+def main():
+    args = vars(set_args())
+    print(args['peptide'])
 
+
+main()

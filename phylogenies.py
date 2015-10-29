@@ -66,3 +66,4 @@ def print_distance_matrix(matrix):
 
 print_distance_matrix(mat)
 
+[[[['A', 'B'], 'C'], 'D'], 'E']
