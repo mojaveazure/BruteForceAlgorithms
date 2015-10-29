@@ -12,7 +12,7 @@ def set_args():
     Arguments.add_argument('peptide',
         type=str,
         nargs='?',
-        default='FLPW',
+        default='FTW',
         help="Enter a peptide string to be used with this example")
     args = Arguments.parse_args()
     return(args)

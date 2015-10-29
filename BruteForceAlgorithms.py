@@ -108,20 +108,21 @@ def score_retrotranslate(translation, peptide, max_score):
     peptide_length = len(peptide) # How long is our peptide sequence?
     print("Looking at a peptide with " + str(peptide_length) + " amino acids")
     solutions = list() # Create a list to hold our solutions
-    failed = 0
+    failed = 0 # Let's see how many we failed
     print("Generating", len(translation.keys()) ** peptide_length, "candidate sequences...")
     for candidate in retrotranslate(translation, peptide_length): # For each candidate RNA sequence
         generated_peptides = RNA_to_peptide(translation, candidate) # Convert the sequence to peptide
-        score = 0
-        for index, amino_acid in enumerate(generated_peptides):
-            if not amino_acid == peptide[index]:
-                score += 1
-            if score > max_score:
-                failed += 1
-                break
-        gene_candidate = RNA_to_DNA(candidate)
-        leadScore = score
-        solutions.append(gene_candidate)
+        score = 0 # Start our score at zero
+        for index, amino_acid in enumerate(generated_peptides): # For each amino acid
+            if not amino_acid == peptide[index]: # If our generated amino acid does not match our peptide
+                score += 1 # Increase our score by one
+            if score > max_score: # See if our score exceeds our bounds
+                failed += 1 # If so, add one to failed
+                break # Break out of our loop
+        if score <= max_score:
+            gene_candidate = RNA_to_DNA(candidate)
+            leadScore = score
+            solutions.append(gene_candidate)
     print("We failed", failed, "candidate sequences for your peptide given your scoring bounds")
     print("Found", len(solutions), "possible gene sequences for your peptide")
     return(solutions) # Return our solutions
@@ -179,10 +180,14 @@ def main():
     input("Press <enter> to find all gene sequence that could code for this peptide using a brute force algorithm...")
     bruteTime = brute_time(args['peptide'], translation)
     input("Press <enter>")
-    clear_screen()
-    input("Now, let's look at a scoring algorithm, press <enter> to start this...")
-    scoreTime = score_time(args['peptide'], translation)
-    input("Press <enter>")
+    repeat = True
+    while repeat:
+        clear_screen()
+        input("Now, let's look at a scoring algorithm, press <enter> to start this...")
+        scoreTime = score_time(args['peptide'], translation)
+        rep = input("Would you like to repeat the scoring algorithm? If so, type 'yes' without the quotes: ")
+        if not rep == 'yes':
+            repeat = False
     clear_screen()
     input("Finally, let's look at a branch-and-bound algorithm, press <enter> to start...")
     branchTime = branch_time(args['peptide'], translation)
