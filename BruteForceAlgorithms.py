@@ -15,7 +15,6 @@ import re
 import sys
 
 #   Import functions from other modules defined in this package
-import run
 from args import set_args
 
 
@@ -137,9 +136,43 @@ def test():
     input("Press enter!")
     print('yay!')
 
+def brute_time(peptide, translation):
+    '''Run our brute force example and time it'''
+    print("Searching with a standard brute force algorithm")
+    t0 <- time.clock()
+    print(brute_retrotranslate(translation, peptide))
+    t1 <- time.clock()
+    print("The time taken to run this progam using a brute force algorithm is", t1-t0, "seconds of walltime")
+
+
+def branch_time(peptide, translation):
+    '''Run our branch-and-bound example and time it'''
+    from BruteForceAlgorthims import b_and_b_retrotranslate
+    print("Now running with a branch-and-bound algorithm")
+    t0 <- time.clock()
+    print(b_and_b_retrotranslate(translation, peptide))
+    t1 <- time.clock()
+    print("The time taken to run this progam using a branch-and-bound algorithm is", t1-t0, "seconds of walltime")
+
+
+def score_time(peptide, translation):
+    '''Run our scoring example and time it'''
+    from BruteForceAlgorthims import score_retrotranslate
+    print("Now running with a scoring algorithm")
+    print("We do scoring like golf, high scores are bad")
+    print("As the number of mismatches increases, the score increases")
+    max_score = int(input("Please enter a maximum scoring bound"))
+    print("Great!")
+    t0 <- time.clock()
+    print(score_retrotranslate(translation, peptide, max_score))
+    t1 <- time.clock()
+    print("The time taken to run this progam using a scoring algorithm is", t1-t0, "seconds of walltime")
+
+
 def main():
+    print("Welcome to", sys.argv[0])
     args = vars(set_args())
-    print(args['peptide'])
+    
 
 
 main()
