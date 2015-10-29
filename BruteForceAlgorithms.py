@@ -13,6 +13,7 @@ import time
 import itertools
 import re
 import sys
+import os
 
 #   Import functions from other modules defined in this package
 from args import set_args
@@ -84,7 +85,8 @@ def b_and_b_retrotranslate(translation, peptide):
     for i in range(peptide_length): # For each amino acid in the peptide sequence
         holding = list() # Create a list to hold our candidate sequences for this amino acid
         print("Looking at", len(translation.keys()), "possible codons for the current amino acid")
-        for codon in [''.join(candidate) for candidate in itertools.product(translation.keys(), repeat=1)]: # For each possible codon sequence
+        #for codon in [''.join(candidate) for candidate in itertools.product(translation.keys(), repeat=1)]: # For each possible codon sequence
+        for codon in retrotranslate(translation, 1):
             amino_acid = RNA_to_peptide(translation, codon) # Translate the codon to an amino acid
             if amino_acid == peptide[i]: # If we have a match
                 gene_codon = RNA_to_DNA(codon) # Reverse translate to the coding DNA sequence
@@ -106,8 +108,6 @@ def score_retrotranslate(translation, peptide, max_score):
     peptide_length = len(peptide) # How long is our peptide sequence?
     print("Looking at a peptide with " + str(peptide_length) + " amino acids")
     solutions = list() # Create a list to hold our solutions
-    leadGene = ''
-    leadScore = max_score
     failed = 0
     print("Generating", len(translation.keys()) ** peptide_length, "candidate sequences...")
     for candidate in retrotranslate(translation, peptide_length): # For each candidate RNA sequence
@@ -116,63 +116,82 @@ def score_retrotranslate(translation, peptide, max_score):
         for index, amino_acid in enumerate(generated_peptides):
             if not amino_acid == peptide[index]:
                 score += 1
-                if score > max_score:
-                    failed += 1
-                    break
-            if score > leadScore:
-                print("Found new lead scorer!")
-                gene_candidate = RNA_to_DNA(candidate)
-                leadGene = gene_candidate
-                leadScore = score
-                solutions = [gene_candidate]
-            elif score == leadScore:
-                gene_candidate = RNA_to_DNA(candidate)
-                solutions.append(gene_candidate)
-    print("We failed", len(failed), "candidate sequences for your peptide given your scoring bounds")
+            if score > max_score:
+                failed += 1
+                break
+        gene_candidate = RNA_to_DNA(candidate)
+        leadScore = score
+        solutions.append(gene_candidate)
+    print("We failed", failed, "candidate sequences for your peptide given your scoring bounds")
     print("Found", len(solutions), "possible gene sequences for your peptide")
     return(solutions) # Return our solutions
 
-def test():
-    input("Press enter!")
-    print('yay!')
 
 def brute_time(peptide, translation):
     '''Run our brute force example and time it'''
     print("Searching with a standard brute force algorithm")
-    t0 <- time.clock()
+    t0 = time.clock() # Start time
     print(brute_retrotranslate(translation, peptide))
-    t1 <- time.clock()
-    print("The time taken to run this progam using a brute force algorithm is", t1-t0, "seconds of walltime")
+    t1 = time.clock() # End time
+    bruteTime = t1-t0 # Time difference
+    print("The brute force algorithm took", bruteTime, "seconds of walltime")
+    return(bruteTime)
 
 
 def branch_time(peptide, translation):
     '''Run our branch-and-bound example and time it'''
-    from BruteForceAlgorthims import b_and_b_retrotranslate
     print("Now running with a branch-and-bound algorithm")
-    t0 <- time.clock()
+    t0 = time.clock() # Start time
     print(b_and_b_retrotranslate(translation, peptide))
-    t1 <- time.clock()
-    print("The time taken to run this progam using a branch-and-bound algorithm is", t1-t0, "seconds of walltime")
+    t1 = time.clock() # End time
+    branchTime = t1-t0 # Time difference
+    print("The branch-and-bound algorithm took", branchTime, "seconds of walltime")
+    return(branchTime)
 
 
 def score_time(peptide, translation):
     '''Run our scoring example and time it'''
-    from BruteForceAlgorthims import score_retrotranslate
     print("Now running with a scoring algorithm")
     print("We do scoring like golf, high scores are bad")
     print("As the number of mismatches increases, the score increases")
-    max_score = int(input("Please enter a maximum scoring bound"))
+    max_score = int(input("Please enter a maximum scoring bound: ")) # Get a scoring bound and convert it to integer type
     print("Great!")
-    t0 <- time.clock()
+    t0 = time.clock() # Start time
     print(score_retrotranslate(translation, peptide, max_score))
-    t1 <- time.clock()
-    print("The time taken to run this progam using a scoring algorithm is", t1-t0, "seconds of walltime")
+    t1 = time.clock() # End time
+    scoreTime = t1-t0 # Time difference
+    print("The scoring algorithm took", scoreTime, "seconds of walltime")
+    return(scoreTime)
 
+def clear_screen():
+    '''Clear the screen'''
+    if os.name == 'nt': # If we're running Windows
+        os.system('cls')
+    else: # Otherwise, assume Mac/Linux/Unix
+        os.system('clear')
 
 def main():
-    print("Welcome to", sys.argv[0])
+    '''Run the program'''
     args = vars(set_args())
-    
+    clear_screen()
+    print("Welcome to", sys.argv[0])
+    print("The peptide we're using today is", args['peptide'])
+    input("Press <enter> to find all gene sequence that could code for this peptide using a brute force algorithm...")
+    bruteTime = brute_time(args['peptide'], translation)
+    input("Press <enter>")
+    clear_screen()
+    input("Now, let's look at a scoring algorithm, press <enter> to start this...")
+    scoreTime = score_time(args['peptide'], translation)
+    input("Press <enter>")
+    clear_screen()
+    input("Finally, let's look at a branch-and-bound algorithm, press <enter> to start...")
+    branchTime = branch_time(args['peptide'], translation)
+    input("Press <enter>")
+    clear_screen()
+    print("To recap:")
+    print("Our brute force algorithm took", bruteTime, "seconds of walltime")
+    print("Our scoring algorithm took", scoreTime, "seconds of walltime")
+    print("Our branch-and-bound algorithm took", branchTime, "seconds of walltime")
 
 
 main()
